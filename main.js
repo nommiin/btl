@@ -2,20 +2,22 @@ Game = {
     Main: function(t) {
         Game.Engine.Target = t;
         Game.Engine.Initalize();
-
         Game.Instance.Create(new Game.Object[Object.keys(Game.Object)[0]]);
     },
     Instance: {
         List: [],
         ID: 0,
         Create: function(instance, x=0, y=0) {
-            instance.id = Game.Instance.ID++;
-            instance.bbox = undefined;
-            instance.x = x;
-            instance.y = y;
-            instance.name = instance.constructor.name;
+            instance = Object.assign(instance, {
+                name: instance.constructor.name,
+                id: Game.Instance.ID++,
+                bbox: [0, 0, 0, 0],
+                x: x,
+                y: y
+            });
             Game.Instance.List.push(instance);
             if (instance.Create != undefined && instance.Create());
+            return Game.Instance.List[Game.Instance.List.length - 1];
         },
         Destroy: function(instance) {
             for(var i = 0; i < Game.Instance.List.length; i++) {
@@ -25,6 +27,31 @@ Game = {
                     break;
                 }
             }
+        },
+        Find: function(instance) {
+            if ((typeof instance == "number") == true) {
+                for(var i = 0; i < Game.Instance.List.length; i++) {
+                    if (Game.Instance.List[i].id == instance) {
+                        return Game.Instance.List[i];
+                    }
+                }
+            } else {
+                for(var i = 0; i < Game.Instance.List.length; i++) {
+                    if (Game.Instance.List[i].constructor.name == instance.name) {
+                        return Game.Instance.List[i];
+                    }
+                }
+            }
+            return undefined;
+        },
+        Count: function(instance) {
+            let CountInstance = 0;
+            for(var i = 0; i < Game.Instance.List.length; i++) {
+                if (Game.Instance.List[i].constructor.name == instance.name) {
+                    CountInstance++;
+                }
+            }
+            return CountInstance;
         }
     },
     Engine: {
@@ -54,22 +81,55 @@ Game = {
         CheckGeneric: function(x, y) {
             for(var i = 0; i < Game.Instance.List.length; i++) {
                 let Instance = Game.Instance.List[i];
-                if (Game.Collision.Rectangle(x, y, Instance.x + Instance.bbox[0], Instance.y + Instance.bbox[1], Instance.x + Instance.bbox[2], Instance.x + Instance.bbox[3]) == true) {
+                if (Game.Collision.Rectangle(x, y, Instance.x + Instance.bbox[0], Instance.y + Instance.bbox[1], Instance.x + Instance.bbox[2], Instance.y + Instance.bbox[3]) == true) {
                     return true;
                 }
             }
             return false;
         },
         Check: function(instance, x, y) {
-            for(var i = 0; i < Game.Instance.List.length; i++) {
-                if (Game.Instance.List[i].constructor.name == instance.name) {
-                    let Instance = Game.Instance.List[i];
-                    if (Game.Collision.Rectangle(x, y, Instance.x + Instance.bbox[0], Instance.y + Instance.bbox[1], Instance.x + Instance.bbox[2], Instance.x + Instance.bbox[3]) == true) {
-                        return true;
+            if ((typeof instance == "number")) {
+                for(var i = 0; i < Game.Instance.List.length; i++) {
+                    if (Game.Instance.List[i].id == instance) {
+                        let Instance = Game.Instance.List[i];
+                        if (Game.Collision.Rectangle(x, y, Instance.x + Instance.bbox[0], Instance.y + Instance.bbox[1], Instance.x + Instance.bbox[2], Instance.x + Instance.bbox[3]) == true) {
+                            return true;
+                        }
+                    }
+                }
+            } else {
+                for(var i = 0; i < Game.Instance.List.length; i++) {
+                    if (Game.Instance.List[i].constructor.name == instance.name) {
+                        let Instance = Game.Instance.List[i];
+                        if (Game.Collision.Rectangle(x, y, Instance.x + Instance.bbox[0], Instance.y + Instance.bbox[1], Instance.x + Instance.bbox[2], Instance.x + Instance.bbox[3]) == true) {
+                            return true;
+                        }
                     }
                 }
             }
             return false;
+        },
+        Get: function(instance, x, y) {
+            if ((typeof instance == "number")) {
+                for(var i = 0; i < Game.Instance.List.length; i++) {
+                    if (Game.Instance.List[i].id == instance) {
+                        let Instance = Game.Instance.List[i];
+                        if (Game.Collision.Rectangle(x, y, Instance.x + Instance.bbox[0], Instance.y + Instance.bbox[1], Instance.x + Instance.bbox[2], Instance.x + Instance.bbox[3]) == true) {
+                            return Game.Instance.List[i];
+                        }
+                    }
+                }
+            } else {
+                for(var i = 0; i < Game.Instance.List.length; i++) {
+                    if (Game.Instance.List[i].constructor.name == instance.name) {
+                        let Instance = Game.Instance.List[i];
+                        if (Game.Collision.Rectangle(x, y, Instance.x + Instance.bbox[0], Instance.y + Instance.bbox[1], Instance.x + Instance.bbox[2], Instance.x + Instance.bbox[3]) == true) {
+                            return Game.Instance.List[i];
+                        }
+                    }
+                }
+            }
+            return undefined;
         }
     },
     Graphics: {
@@ -191,4 +251,12 @@ Game = {
 
 Math.lerp = function(a, b, f) {
     return a + f * (b - a);
+}
+
+Math.random_range = function(a, b) {
+    return Math.random() * (b - a) + a;
+}
+
+Math.irandom_range = function(a, b) {
+    return Math.round(Math.random_range(a, b));
 }

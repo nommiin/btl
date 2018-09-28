@@ -1,4 +1,17 @@
 Game.Object = {
+    oController: function() {
+        this.Create = ()=> {
+            this.cTimer = 0;
+            Game.Instance.Create(new Game.Object[Object.keys(Game.Object)[1]]);
+        }
+
+        this.Update = ()=> {
+            if (this.cTimer++ % 80 == 0) {
+                console.log("made obstacle");
+                Game.Instance.Create(new Game.Object.oObstacle, 0, Math.random_range(0, Game.Engine.Target.height));
+            }
+        }
+    },
     oPlayer: function() {
         this.Create = ()=> {
             // Position & Size
@@ -16,6 +29,7 @@ Game.Object = {
             this.x = (this.cGoto / 2) * -1;
             this.y = Game.Engine.Target.height / 2;
             this.bbox = [-(this.cSize / 2), -(this.cSize / 2), this.cSize / 2, this.cSize / 2];
+            console.log(this.bbox);
         }
 
         this.Update = ()=> {
@@ -42,7 +56,7 @@ Game.Object = {
             }
 
             // Shooting
-            if (Game.Input.Get(Game.Input.SPACE) == true) {
+            if (Game.Input.GetPressed(Game.Input.SPACE) == true) {
                 Game.Instance.Create(new Game.Object.oBullet(), this.x, this.y);
             }
         }
@@ -53,14 +67,35 @@ Game.Object = {
     },
     oBullet: function() {
         this.Update = ()=> {
+            let fCollision = Game.Collision.Get(Game.Object.oObstacle, this.x, this.y);
+            if (fCollision != undefined) {
+                Game.Instance.Destroy(this);
+            } else if (this.x > Game.Engine.Target.width) {
+                Game.Instance.Destroy(this);
+            }
             this.x += 4;
-            if (this.x > Game.Engine.Target.width) {
+        }
+
+        this.Render = ()=> {
+            Game.Graphics.Circle(this.x, this.y, 4, false);
+        }
+    },
+    oObstacle: function() {
+        this.Create = ()=> {
+            this.cSize = Math.irandom_range(32, 64);
+            this.bbox = [-(this.cSize / 2), -(this.cSize / 2), this.cSize / 2, this.cSize / 2];
+            this.x = Game.Engine.Target.width + (this.cSize / 2);
+        }
+
+        this.Update = ()=> {
+            this.x -= 2;
+            if (this.x < this.cSize * -1) {
                 Game.Instance.Destroy(this);
             }
         }
 
         this.Render = ()=> {
-            Game.Graphics.Circle(this.x, this.y, 4, false);
+            Game.Graphics.Rectangle(this.x - (this.cSize / 2), this.y - (this.cSize / 2), this.x + (this.cSize / 2), this.y + (this.cSize / 2), false);
         }
     }
 }
